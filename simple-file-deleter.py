@@ -1,4 +1,5 @@
 from tkinter import *
+import time, os.path, datetime
 
 class Application(Frame):
     """Simple file deleter."""
@@ -20,10 +21,6 @@ class Application(Frame):
         #Frame(height=2, bd=1, relief=SUNKEN
         #      ).grid(row = 0, column = 2, sticky = W)
 
-        #An Example Drop Down Menu
-        #OptionMenu(self, "default selection", "one", "two", "three"
-        #          ).grid(row = 5, column = 2, sticky = W)
-
         #Deleting a specific type of file:
         self.FileExtention = IntVar() 
         Checkbutton(self, text = "By file extention:",
@@ -34,7 +31,7 @@ class Application(Frame):
 
 
         self.FilenameContains = IntVar()
-        Checkbutton(self, text = "Filename contains:",
+        Checkbutton(self, text = "Filename contains: (Case Sensitive)",
                                         variable = self.FilenameContains
                                         ).grid(row = 5, column = 0, sticky = W)
         self.UserFilenameContains = Entry(self)
@@ -42,10 +39,17 @@ class Application(Frame):
 
 
         self.OlderThan = IntVar()
-        Checkbutton(self, text = "Files older than:",
+        Checkbutton(self, text = "Files created before:",
                                       variable = self.OlderThan
                                       ).grid(row = 7, column = 0, sticky = W)
-        #For older than, we need a drop down with presets (one day, week, month, six months, year)
+        
+        self. SelectedOlderThan = StringVar()
+        self.SelectedOlderThan.set('Select A Time...') #Remember that if it equals this when called, raise an error
+        choices = ['Select A Day...', 'Today', 'Yesterday', 'One Week', 'One Month','One Year']
+        OlderThanDropDown = OptionMenu(self, self.SelectedOlderThan, *choices
+                                       ).grid(row = 8, column = 0, sticky = W)
+
+
         ###################################
         #Presets: (For these, no entry is needed)
         
@@ -71,7 +75,6 @@ class Application(Frame):
                                               ).grid(row = 5, column = 3, sticky = W)
 
         
-        #Any other options?
         ####################################
         #Need divider here to separate bottom from top
 
@@ -79,22 +82,22 @@ class Application(Frame):
 
         Label(self,
               text = "Global Options:"
-              ).grid(row = 8, column = 2, sticky = W)
+              ).grid(row = 9, column = 2, sticky = W)
 
         self.MoveToRecycle = IntVar()
         Checkbutton(self, text = "Move deleted files to recycle bin",
                                                      variable = self.MoveToRecycle
-                                                     ).grid(row = 9, column = 0, sticky = W)
+                                                     ).grid(row = 10, column = 0, sticky = W)
 
         self.DeleteSubDirectories = IntVar()
         Checkbutton(self, text = "Delete files from all subdirectories",
                                                     variable = self.DeleteSubDirectories
-                                                    ).grid(row = 9, column = 3, sticky = W)
+                                                    ).grid(row = 10, column = 3, sticky = W)
 
         Button(self,
                text = "Delete",
                command = self.init_delete
-               ).grid(row = 10, column = 2, sticky = W)
+               ).grid(row = 11, column = 2, sticky = W)
 
 
 
@@ -112,7 +115,8 @@ class Application(Frame):
             self.delete("filename")
         elif self.DeleteAllInstallers.get() == 1:
             self.delete("installers")
-
+        elif self.OlderThan.get() == 1:
+            self.delete("olderthan")
 
 
 
@@ -150,8 +154,6 @@ class Application(Frame):
             for f in filelist:
                 os.remove(f)
 
-
-
         if Filetype == "filename":
             userFilename = self.UserFilenameContains.get()
             filelist = [f for f in os.listdir(".")] #Lists all files in the directory
@@ -163,12 +165,48 @@ class Application(Frame):
         if Filetype == "installers":
             filelist = [f for f in os.listdir(".")] #Lists all files in the directory
             for f in filelist:
-                current_file = os.path.splitext(f)[0] #Saves only the filename without the extention
-                if re.search('install', current_file) or re.search('setup', current_file): #Works for now
-                    os.remove(f)
+                current_file = os.path.splitext(f) #Saves only the filename without the extention
+                if re.search('install', current_file[0], re.IGNORECASE) or re.search('setup', current_file[0], re.IGNORECASE):
+                    if current_file[1] == ".exe" or current_file[1] == ".msi" :
+                        print(current_file[1])
+                        os.remove(f)
+
+        if Filetype == "olderthan":
+            #print "last modified: %s" % time.ctime(os.path.getmtime(file))
+            #print "created: %s" % time.ctime(os.path.getctime(file))
+            userSelection = self.SelectedOlderThan.get()
+            if userSelection == "Select A Time...":
+                #Will update a label somewhere at somepoint. Lower Left Corner?
+                print("Please select a time.")
+            else:
+                filelist = [f for f in os.listdir(".")]
+                today = datetime.datetime.today()
+                for f in filelist:
+                    created_date = datetime.datetime.fromtimestamp(os.path.getctime(f))
+                    time_difference = today - created_date
+                    if userSelection == "Today":
+                        if time_difference.days >= 1:
+                            os.remove(f)
+                    elif userSelection == "Yesterday":
+                        if time_difference.days >= 2:
+                            os.remove(f)
+                    elif userSelection == "One Week":
+                        if time_difference.days >= 7:
+                            os.remove(f)
+                    elif userSelection == "One Month":
+                        if time_difference.days >= 31: #These are just approximations - Will be *about* accurate
+                            os.remove(f)
+                    elif userSelection == "One Year":
+                        if time_difference.days >= 365:
+                            os.remove(f)
+                            
+                    
+                    
+                        
+                    
 
 # main
 root = Tk()
-root.title("File Deleter") #Sets title of window
+root.title("simple-file-deleter") #Sets title of window
 app = Application(root)
 root.mainloop() #Begins application
