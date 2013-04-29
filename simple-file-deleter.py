@@ -15,12 +15,6 @@ class Application(Frame):
         Label(self,
               text = "Presets:"
               ).grid(row = 0, column = 3, sticky = W)
-        
-        #Divide the two parts of the program
-        #Sample Frame:
-        #Frame(height=2, bd=1, relief=SUNKEN
-        #      ).grid(row = 0, column = 2, sticky = W)
-
         #Deleting a specific type of file:
         self.FileExtention = IntVar() 
         Checkbutton(self, text = "By file extention:",
@@ -43,7 +37,7 @@ class Application(Frame):
                                       variable = self.OlderThan
                                       ).grid(row = 7, column = 0, sticky = W)
         
-        self. SelectedOlderThan = StringVar()
+        self.SelectedOlderThan = StringVar()
         self.SelectedOlderThan.set('Select A Time...') #Remember that if it equals this when called, raise an error
         choices = ['Select A Day...', 'Today', 'Yesterday', 'One Week', 'One Month','One Year']
         OlderThanDropDown = OptionMenu(self, self.SelectedOlderThan, *choices
@@ -72,37 +66,22 @@ class Application(Frame):
         self.DeleteAllPictures = IntVar()
         Checkbutton(self, text = "Delete all pictures",
                                               variable = self.DeleteAllPictures
-                                              ).grid(row = 5, column = 3, sticky = W)
-
-        
-        ####################################
-        #Need divider here to separate bottom from top
-
-        #CAUTION: THIS NEEDS TO BE MODIFIED EVERYTIME A BUTTON IS ADDED
-
-        Label(self,
-              text = "Global Options:"
-              ).grid(row = 9, column = 2, sticky = W)
-
-        self.MoveToRecycle = IntVar()
-        Checkbutton(self, text = "Move deleted files to recycle bin",
-                                                     variable = self.MoveToRecycle
-                                                     ).grid(row = 10, column = 0, sticky = W)
-
-        self.DeleteSubDirectories = IntVar()
-        Checkbutton(self, text = "Delete files from all subdirectories",
-                                                    variable = self.DeleteSubDirectories
-                                                    ).grid(row = 10, column = 3, sticky = W)
-
+                                              ).grid(row = 5, column = 3, sticky = 
         Button(self,
                text = "Delete",
                command = self.init_delete
                ).grid(row = 11, column = 2, sticky = W)
 
-
+        self.StatusVar = StringVar()
+        self.StatusVar.set('')
+        self.StatusLabel = Label(self,
+                                textvariable = self.StatusVar
+                                 ).grid(row = 12, column = 0, sticky = W)
+        
 
 
     def init_delete(self):
+        self.StatusVar.set('Deleting...')
         if self.DeleteAllDocuments.get() == 1:
             self.delete("documents")
         elif self.DeleteAllPictures.get() == 1:
@@ -117,15 +96,12 @@ class Application(Frame):
             self.delete("installers")
         elif self.OlderThan.get() == 1:
             self.delete("olderthan")
+        else:
+            self.StatusVar.set('Please select an option.')
 
 
 
     def delete(self, Filetype):
-        
-        #Delete things in subdirectories? (Include as global option)
-        #http://tuxbalaji.wordpress.com/2012/10/28/how-to-delete-files-in-python/
-
-        #Consider adding file extentions to a data file
         import os
         import re
         if Filetype == "documents": #Deletes all documents
@@ -133,6 +109,7 @@ class Application(Frame):
                         or f.endswith(".txt") or f.endswith(".docx")]
             for f in filelist:
                 os.remove(f)
+            self.StatusVar.set('Deleted.')
                 
         if Filetype == "pictures": #Deletes all pictures
             filelist = [f for f in os.listdir(".") if f.endswith(".jpg")
@@ -140,19 +117,23 @@ class Application(Frame):
                         or f.endswith(".bmp") or f.endswith(".tiff")]
             for f in filelist:
                 os.remove(f)
+            self.StatusVar.set('Deleted.')
 
         if Filetype == "torrents": #Deletes all pictures
             filelist = [f for f in os.listdir(".") if f.endswith(".torrent")]
             for f in filelist:
                 os.remove(f)
+            self.StatusVar.set('Deleted.')
         
         if Filetype == "extention":
-            
             userExtention = self.userFileExtention.get()
-            #Need exception if what user enters does not start with a period
-            filelist = [f for f in os.listdir(".") if f.endswith(userExtention)]
-            for f in filelist:
-                os.remove(f)
+            if not re.search(r'^\.', userExtention):
+                self.StatusVar.set('Please enter an extention that begins with a period.')
+            else:  
+                filelist = [f for f in os.listdir(".") if f.endswith(userExtention)]
+                for f in filelist:
+                    os.remove(f)
+                self.StatusVar.set('Deleted.')
 
         if Filetype == "filename":
             userFilename = self.UserFilenameContains.get()
@@ -161,6 +142,7 @@ class Application(Frame):
                 current_file = os.path.splitext(f)[0] #Saves only the filename without the extention
                 if re.search(userFilename, current_file): #Scans for the file
                     os.remove(f)
+            self.StatusVar.set('Deleted.')
 
         if Filetype == "installers":
             filelist = [f for f in os.listdir(".")] #Lists all files in the directory
@@ -168,16 +150,13 @@ class Application(Frame):
                 current_file = os.path.splitext(f) #Saves only the filename without the extention
                 if re.search('install', current_file[0], re.IGNORECASE) or re.search('setup', current_file[0], re.IGNORECASE):
                     if current_file[1] == ".exe" or current_file[1] == ".msi" :
-                        print(current_file[1])
                         os.remove(f)
+            self.StatusVar.set('Deleted.')
 
         if Filetype == "olderthan":
-            #print "last modified: %s" % time.ctime(os.path.getmtime(file))
-            #print "created: %s" % time.ctime(os.path.getctime(file))
             userSelection = self.SelectedOlderThan.get()
             if userSelection == "Select A Time...":
-                #Will update a label somewhere at somepoint. Lower Left Corner?
-                print("Please select a time.")
+                self.StatusVar.set('Please select a time.')
             else:
                 filelist = [f for f in os.listdir(".")]
                 today = datetime.datetime.today()
@@ -199,11 +178,7 @@ class Application(Frame):
                     elif userSelection == "One Year":
                         if time_difference.days >= 365:
                             os.remove(f)
-                            
-                    
-                    
-                        
-                    
+                self.StatusVar.set('Deleted.')    
 
 # main
 root = Tk()
