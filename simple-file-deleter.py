@@ -66,7 +66,7 @@ class Application(Frame):
         self.DeleteAllPictures = IntVar()
         Checkbutton(self, text = "Delete all pictures",
                                               variable = self.DeleteAllPictures
-                                              ).grid(row = 5, column = 3, sticky = 
+                                              ).grid(row = 5, column = 3, sticky = W)
         Button(self,
                text = "Delete",
                command = self.init_delete
