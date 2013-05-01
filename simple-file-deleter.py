@@ -113,7 +113,9 @@ class Application(Frame):
         import re
         if Filetype == "documents": #Deletes all documents
             filelist = [f for f in os.listdir(".") if f.endswith(".doc")
-                        or f.endswith(".txt") or f.endswith(".docx")]
+                        or f.endswith(".txt") or f.endswith(".docx")
+                        or f.endswith(".rtf") or f.endswith(".odt")
+                        or f.enswith(".wps")] #Will add support for more in the future
             for f in filelist:
                 os.remove(f)
             self.StatusVar.set('Deleted.')
