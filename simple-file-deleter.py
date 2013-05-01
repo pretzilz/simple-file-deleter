@@ -1,3 +1,10 @@
+################################
+# simple-file-deleter.py
+# Written by Kurt Kaufman
+# V. 1.0 Beta
+# 4/30/13
+###############################
+
 from tkinter import *
 import time, os.path, datetime
 
