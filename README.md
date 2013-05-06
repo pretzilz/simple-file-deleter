@@ -11,7 +11,3 @@ FEATURES:
 - Deletes files that have a keyword in the filename
 
 All parts of the program work on Windows. It is currently untested on other platforms.
-
-Future Features:
-- Add options for sending files to the recycle bin (Windows only)
-- Add options for deleting files in sub-directories
