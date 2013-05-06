@@ -1,7 +1,7 @@
 ################################
 # simple-file-deleter.py
 # Written by Kurt Kaufman
-# V. 1.0 Beta
+# V. 1.1 Beta
 # 4/30/13
 ###############################
 
@@ -74,18 +74,31 @@ class Application(Frame):
         Checkbutton(self, text = "Delete all pictures",
                                               variable = self.DeleteAllPictures
                                               ).grid(row = 5, column = 3, sticky = W)
+        self.DeleteAllSound = IntVar()
+        Checkbutton(self, text = "Delete all sound files",
+                                              variable = self.DeleteAllSound
+                                              ).grid(row = 6, column = 3, sticky = W)
         Button(self,
                text = "Delete",
-               command = self.init_delete
-               ).grid(row = 11, column = 2, sticky = W)
+               command = self.confirm_delete
+               ).grid(row = 12, column = 2, sticky = W)
 
         self.StatusVar = StringVar()
         self.StatusVar.set('')
         self.StatusLabel = Label(self,
                                 textvariable = self.StatusVar
-                                 ).grid(row = 12, column = 0, sticky = W)
+                                 ).grid(row = 13, column = 0, sticky = W)
+        
+        Frame(self, height=6, bd=1, width = 1, relief=SUNKEN).grid(row = 0, column = 2, sticky = W)
         
 
+    def confirm_delete(self):
+        result = messagebox.askquestion("Delete", "This will delete the files forever. Are you sure?", icon='warning')
+        if result == 'yes':
+            self.init_delete()
+        else:
+            self.StatusVar.set('Cancelled.')
+                
 
     def init_delete(self):
         self.StatusVar.set('Deleting...')
@@ -103,6 +116,8 @@ class Application(Frame):
             self.delete("installers")
         elif self.OlderThan.get() == 1:
             self.delete("olderthan")
+        elif self.DeleteAllSound.get() == 1:
+            self.delete("sound")
         else:
             self.StatusVar.set('Please select an option.')
 
@@ -116,23 +131,44 @@ class Application(Frame):
                         or f.endswith(".txt") or f.endswith(".docx")
                         or f.endswith(".rtf") or f.endswith(".odt")
                         or f.enswith(".wps")] #Will add support for more in the future
-            for f in filelist:
-                os.remove(f)
-            self.StatusVar.set('Deleted.')
+            if filelist == []:
+                self.StatusVar.set('No document files were found.')
+            else:
+                for f in filelist:
+                    os.remove(f)
+                    self.StatusVar.set('Deleted.')
                 
         if Filetype == "pictures": #Deletes all pictures
             filelist = [f for f in os.listdir(".") if f.endswith(".jpg")
                         or f.endswith(".gif") or f.endswith(".png")
                         or f.endswith(".bmp") or f.endswith(".tiff")]
-            for f in filelist:
-                os.remove(f)
-            self.StatusVar.set('Deleted.')
+            if filelist == []:
+                self.StatusVar.set('No picture files were found.')
+            else:
+                for f in filelist:
+                    os.remove(f)
+                    self.StatusVar.set('Deleted.')
 
         if Filetype == "torrents": #Deletes all pictures
             filelist = [f for f in os.listdir(".") if f.endswith(".torrent")]
-            for f in filelist:
-                os.remove(f)
-            self.StatusVar.set('Deleted.')
+            if filelist == []:
+                self.StatusVar.set('No torrent files were found.')
+            else:
+                for f in filelist:
+                    os.remove(f)
+                    self.StatusVar.set('Deleted.')
+                    
+        if Filetype == "sound": #Deletes all documents
+            filelist = [f for f in os.listdir(".") if f.endswith(".mp3")
+                        or f.endswith(".wav") or f.endswith(".flac")
+                        or f.endswith(".ogg") or f.endswith(".aac")
+                        or f.enswith(".m4a") or f.endswith(".wma")]
+            if filelist == []:
+                self.StatusVar.set('No sound files were found.')
+            else:
+                for f in filelist:
+                    os.remove(f)
+                    self.StatusVar.set('Deleted.')
         
         if Filetype == "extention":
             userExtention = self.userFileExtention.get()
@@ -140,27 +176,36 @@ class Application(Frame):
                 self.StatusVar.set('Please enter an extention that begins with a period.')
             else:  
                 filelist = [f for f in os.listdir(".") if f.endswith(userExtention)]
-                for f in filelist:
-                    os.remove(f)
-                self.StatusVar.set('Deleted.')
+                if filelist == []:
+                    self.StatusVar.set('No files were found.')
+                else:
+                    for f in filelist:
+                        os.remove(f)
+                    self.StatusVar.set('Deleted.')
 
         if Filetype == "filename":
             userFilename = self.UserFilenameContains.get()
             filelist = [f for f in os.listdir(".")] #Lists all files in the directory
-            for f in filelist:
-                current_file = os.path.splitext(f)[0] #Saves only the filename without the extention
-                if re.search(userFilename, current_file): #Scans for the file
-                    os.remove(f)
-            self.StatusVar.set('Deleted.')
+            if filelist == []:
+                self.StatusVar.set('No files were found.')
+            else:
+                for f in filelist:
+                    current_file = os.path.splitext(f)[0] #Saves only the filename without the extention
+                    if re.search(userFilename, current_file): #Scans for the file
+                        os.remove(f)
+                        self.StatusVar.set('Deleted.')
 
         if Filetype == "installers":
             filelist = [f for f in os.listdir(".")] #Lists all files in the directory
-            for f in filelist:
-                current_file = os.path.splitext(f) #Saves only the filename without the extention
-                if re.search('install', current_file[0], re.IGNORECASE) or re.search('setup', current_file[0], re.IGNORECASE):
-                    if current_file[1] == ".exe" or current_file[1] == ".msi" :
-                        os.remove(f)
-            self.StatusVar.set('Deleted.')
+            if filelist == []:
+                self.StatusVar.set('No files were found.')
+            else:
+                for f in filelist:
+                    current_file = os.path.splitext(f) #Saves only the filename without the extention
+                    if re.search('install', current_file[0], re.IGNORECASE) or re.search('setup', current_file[0], re.IGNORECASE):
+                        if current_file[1] == ".exe" or current_file[1] == ".msi" :
+                            os.remove(f)
+                            self.StatusVar.set('Deleted.')
 
         if Filetype == "olderthan":
             userSelection = self.SelectedOlderThan.get()
@@ -168,26 +213,29 @@ class Application(Frame):
                 self.StatusVar.set('Please select a time.')
             else:
                 filelist = [f for f in os.listdir(".")]
-                today = datetime.datetime.today()
-                for f in filelist:
-                    created_date = datetime.datetime.fromtimestamp(os.path.getctime(f))
-                    time_difference = today - created_date
-                    if userSelection == "Today":
-                        if time_difference.days >= 1:
-                            os.remove(f)
-                    elif userSelection == "Yesterday":
-                        if time_difference.days >= 2:
-                            os.remove(f)
-                    elif userSelection == "One Week":
-                        if time_difference.days >= 7:
-                            os.remove(f)
-                    elif userSelection == "One Month":
-                        if time_difference.days >= 31: #These are just approximations - Will be *about* accurate
-                            os.remove(f)
-                    elif userSelection == "One Year":
-                        if time_difference.days >= 365:
-                            os.remove(f)
-                self.StatusVar.set('Deleted.')    
+                if filelist == []:
+                    self.StatusVar.set('No files were found.')
+                else:
+                    today = datetime.datetime.today()
+                    for f in filelist:
+                        created_date = datetime.datetime.fromtimestamp(os.path.getctime(f))
+                        time_difference = today - created_date
+                        if userSelection == "Today":
+                            if time_difference.days >= 1:
+                                os.remove(f)
+                        elif userSelection == "Yesterday":
+                            if time_difference.days >= 2:
+                                os.remove(f)
+                        elif userSelection == "One Week":
+                            if time_difference.days >= 7:
+                                os.remove(f)
+                        elif userSelection == "One Month":
+                            if time_difference.days >= 31: #These are just approximations - Will be *about* accurate
+                                os.remove(f)
+                        elif userSelection == "One Year":
+                            if time_difference.days >= 365:
+                                os.remove(f)
+                    self.StatusVar.set('Deleted.')    
 
 # main
 root = Tk()
