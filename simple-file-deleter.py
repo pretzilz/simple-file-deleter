@@ -1,7 +1,7 @@
 ################################
 # simple-file-deleter.py
 # Written by Kurt Kaufman
-# V. 1.1 Beta
+# V. 1.2 Beta
 # 4/30/13
 ###############################
 
@@ -78,16 +78,21 @@ class Application(Frame):
         Checkbutton(self, text = "Delete all sound files",
                                               variable = self.DeleteAllSound
                                               ).grid(row = 6, column = 3, sticky = W)
+        
+        self.DeleteAllVideos = IntVar()
+        Checkbutton(self, text = "Delete all video files",
+                                              variable = self.DeleteAllVideos
+                                              ).grid(row = 7, column = 3, sticky = W)
         Button(self,
                text = "Delete",
                command = self.confirm_delete
-               ).grid(row = 12, column = 2, sticky = W)
+               ).grid(row = 13, column = 2, sticky = W)
 
         self.StatusVar = StringVar()
         self.StatusVar.set('')
         self.StatusLabel = Label(self,
                                 textvariable = self.StatusVar
-                                 ).grid(row = 13, column = 0, sticky = W)
+                                 ).grid(row = 14, column = 0, sticky = W)
         
         Frame(self, height=6, bd=1, width = 1, relief=SUNKEN).grid(row = 0, column = 2, sticky = W)
         
@@ -118,6 +123,8 @@ class Application(Frame):
             self.delete("olderthan")
         elif self.DeleteAllSound.get() == 1:
             self.delete("sound")
+        elif self.DeleteAllVideos.get() == 1:
+            self.delete("video")
         else:
             self.StatusVar.set('Please select an option.')
 
@@ -158,10 +165,24 @@ class Application(Frame):
                     os.remove(f)
                     self.StatusVar.set('Deleted.')
                     
-        if Filetype == "sound": #Deletes all documents
+        if Filetype == "sound": #Deletes all sound
             filelist = [f for f in os.listdir(".") if f.endswith(".mp3")
                         or f.endswith(".wav") or f.endswith(".flac")
-                        or f.endswith(".ogg") or f.endswith(".aac")
+                        or f.endswith(".divx") or f.endswith(".h264")
+                        or f.endswith(".mkv") or f.endswith(".mov")
+                        or f.endswith(".mpeg") or f.endswith(".swf")
+                        or f.endswith(".xvid") or f.endswith(".wmv")]
+            if filelist == []:
+                self.StatusVar.set('No video files were found.')
+            else:
+                for f in filelist:
+                    os.remove(f)
+                    self.StatusVar.set('Deleted.')
+                    
+        if Filetype == "video": #Deletes all sound
+            filelist = [f for f in os.listdir(".") if f.endswith(".avi")
+                        or f.endswith(".mp4") or f.endswith(".flv")
+                        or f.endswith(".3gp") or f.endswith(".aac")
                         or f.endswith(".m4a") or f.endswith(".wma")]
             if filelist == []:
                 self.StatusVar.set('No sound files were found.')
