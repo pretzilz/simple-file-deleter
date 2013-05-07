@@ -162,7 +162,7 @@ class Application(Frame):
             filelist = [f for f in os.listdir(".") if f.endswith(".mp3")
                         or f.endswith(".wav") or f.endswith(".flac")
                         or f.endswith(".ogg") or f.endswith(".aac")
-                        or f.enswith(".m4a") or f.endswith(".wma")]
+                        or f.endswith(".m4a") or f.endswith(".wma")]
             if filelist == []:
                 self.StatusVar.set('No sound files were found.')
             else:
